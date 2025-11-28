@@ -1,6 +1,6 @@
 # 🐍 Snake Game for EdgeTX
 
-A classic Snake game script written in Lua, designed for **EdgeTX** radios with color screens (tested on **RadioMaster TX16S**).
+A classic Snake game script written in Lua, designed for **EdgeTX** radios with color screens (tested on **RadioMaster TX15 and TX16S**).
 
 ![Lua](https://img.shields.io/badge/Lua-EdgeTX-blue) ![License](https://img.shields.io/badge/License-MIT-green)
 
@@ -41,3 +41,4 @@ local cellSize = 10      -- Size of the snake/food blocks
 local startSpeed = 20    -- Initial speed (higher = slower)
 local speedStep = 2      -- How much speed increases per level
 local restartDelay = 100 -- Delay before restart is allowed (100 = 1 sec)
+
