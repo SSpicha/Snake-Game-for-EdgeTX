@@ -115,7 +115,7 @@ local function run(event)
         
         -- 5. Інструкція (Маленький, Білий на чорному тлі - INVERS)
         lcd.drawText(LCD_W / 2 - 115, 150, " Move Stick to Restart ", MIDSIZE + INVERS)
-        lcd.drawText(LCD_W / 2 - 60, 290, "Press RTN to Exit", SMLSIZE)
+        lcd.drawText(LCD_W / 2 - 60, LCD_H - 20, "Press RTN to Exit", SMLSIZE)
         
         return 0
     end
@@ -146,6 +146,7 @@ local function run(event)
             if newHead.x == segment.x and newHead.y == segment.y then
                 gameOver = true
                 playTone(300, 500, 0, PLAY_NOW)
+                lossTime = getTime()
             end
         end
         
