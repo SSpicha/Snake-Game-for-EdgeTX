@@ -1,6 +1,6 @@
--- Гра "Змійка" для EdgeTX (RadioMaster)
--- Виправлена версія: Рекорд зберігається тільки в RAM (щоб уникнути помилок файлової системи)
--- Керування: Правий стік (Елерони/Елеватор)
+-- "Snake" game for EdgeTX (RadioMaster)
+-- Fixed version: High score is stored in RAM only (to avoid file system errors)
+-- Controls: Right Stick (Aileron/Elevator)
 
 local snake = {}
 local dir = {x = 1, y = 0} 
@@ -9,24 +9,24 @@ local cellSize = 10
 local width = LCD_W / cellSize
 local height = LCD_H / cellSize
 local score = 0
-local maxScore = 0 -- Рекорд (зберігається до виходу)
+local maxScore = 0 -- High score (stored until exit)
 local gameOver = false
 local lastMoveTime = 0
 
--- Налаштування швидкості
+-- Speed settings
 local startSpeed = 20 
 local currentSpeed = startSpeed
 local speedStep = 2 
 local maxSpeed = 4 
 
--- НОВІ ЗМІННІ 
+-- NEW VARIABLES 
 local lossTime = 0 
-local restartDelay = 100 -- 100 тіків * 10мс = 1 секунда затримки
-local hapticPlayed = false -- Прапор, щоб вібрація спрацювала лише раз
+local restartDelay = 100 -- 100 ticks * 10ms = 1 second delay
+local hapticPlayed = false -- Flag to ensure haptic plays only once
 
--- Функція ініціалізації
+-- Initialization function
 local function init()
-    -- Скидання змійки в центр
+    -- Reset snake to the center
     snake = {
         {x = math.floor(width / 2), y = math.floor(height / 2)},
         {x = math.floor(width / 2) - 1, y = math.floor(height / 2)},
@@ -36,12 +36,12 @@ local function init()
     score = 0
     gameOver = false
     currentSpeed = startSpeed
-    lossTime = 0           -- НОВЕ: Скидання часу програшу
-    hapticPlayed = false   -- НОВЕ: Скидання прапора вібрації
+    lossTime = 0           -- NEW: Reset loss time
+    hapticPlayed = false   -- NEW: Reset haptic flag
     spawnFood()
 end
 
--- Функція створення їжі
+-- Food spawning function
 function spawnFood()
     local valid = false
     while not valid do
@@ -57,7 +57,7 @@ function spawnFood()
     end
 end
 
--- Головний цикл
+-- Main loop
 local function run(event)
     lcd.clear()
 
@@ -65,7 +65,7 @@ local function run(event)
         return 2 
     end
 
-    -- Відображення рахунку
+    -- Display score
     lcd.drawText(5, 5, "Score: " .. score, 0)
     lcd.drawText(LCD_W - 100, 5, "MAX: " .. maxScore, 0)
     
@@ -73,75 +73,75 @@ local function run(event)
     local ele = getValue('ele')
     local threshold = 500 
     
-    -- ЛОГІКА КІНЦЯ ГРИ
+    -- GAME OVER LOGIC
     if gameOver then
-	
-        -- НОВЕ: Вібрація (спрацює лише один раз)
+    
+        -- NEW: Haptic (triggers only once)
         if not hapticPlayed then
-            playHaptic(2,0) -- 2 - сильний імпульс
+            playHaptic(2,0) -- 2 - strong pulse
             hapticPlayed = true
         end
-        -- Оновлюємо рекорд у пам'яті
+        -- Update high score in memory
         if score > maxScore then
             maxScore = score
         end
-		
-        -- НОВЕ: Перевірка затримки (1 секунда)
+        
+        -- NEW: Delay check (1 second)
         if getTime() - lossTime < restartDelay then
-            -- Ігноруємо стіки, поки триває затримка
+            -- Ignore sticks while delay is active
         else
-            -- Якщо затримка минула, дозволяємо рестарт
+            -- If delay has passed, allow restart
             if math.abs(ail) > threshold or math.abs(ele) > threshold or event == EVT_KEY_LONG then
                 init()
                 return 0
             end
         end
 
-        -- === КРАСИВИЙ GAME OVER ===
+        -- === FANCY GAME OVER ===
         
-        -- 1. Малюємо напівпрозору підкладку (сірий прямокутник по центру)
-        -- Відступи: зліва 40, зверху 30, ширина W-80, висота H-60
+        -- 1. Draw semi-transparent background (grey rectangle in the center)
+        -- Margins: left 40, top 30, width W-80, height H-60
         lcd.drawFilledRectangle(40, 30, LCD_W - 80, LCD_H - 60, GREY)
         
-        -- 2. Малюємо рамку навколо
-        lcd.drawRectangle(40, 30, LCD_W - 80, LCD_H - 60, WHITE, 2) -- 2 це товщина лінії
+        -- 2. Draw border around
+        lcd.drawRectangle(40, 30, LCD_W - 80, LCD_H - 60, WHITE, 2) -- 2 is line thickness
 
-        -- 3. Заголовок (Величезний, Червоний, Миготливий)
-        -- XXLSIZE - дуже великий шрифт
+        -- 3. Title (Huge, Red, Blinking)
+        -- XXLSIZE - very large font
         lcd.drawText(LCD_W / 2 - 180, 50, "GAME OVER", XXLSIZE + RED + BLINK)
 
-        -- 4. Рахунок (Великий, Жовтий)
+        -- 4. Score (Large, Yellow)
         lcd.drawText(LCD_W / 2 - 60, 100, "Score: " .. score, DBLSIZE + YELLOW)
         
-        -- 5. Інструкція (Маленький, Білий на чорному тлі - INVERS)
+        -- 5. Instruction (Small, White on black background - INVERS)
         lcd.drawText(LCD_W / 2 - 115, 150, " Move Stick to Restart ", MIDSIZE + INVERS)
         lcd.drawText(LCD_W / 2 - 60, LCD_H - 20, "Press RTN to Exit", SMLSIZE)
         
         return 0
     end
 
-    -- УПРАВЛІННЯ
+    -- CONTROLS
     if ail > threshold and dir.x == 0 then dir = {x = 1, y = 0}
     elseif ail < -threshold and dir.x == 0 then dir = {x = -1, y = 0}
     elseif ele > threshold and dir.y == 0 then dir = {x = 0, y = -1}
     elseif ele < -threshold and dir.y == 0 then dir = {x = 0, y = 1}
     end
 
-    -- РУХ
+    -- MOVEMENT
     local now = getTime()
     if now - lastMoveTime > currentSpeed then
         lastMoveTime = now
         
         local newHead = {x = snake[1].x + dir.x, y = snake[1].y + dir.y}
 
-        -- Зіткнення зі стінами
+        -- Collision with walls
         if newHead.x < 0 or newHead.x >= width or newHead.y < 0 or newHead.y >= height then
             gameOver = true
             playTone(300, 500, 0, PLAY_NOW)
-			lossTime = getTime()           -- НОВЕ: Фіксуємо час програшу
+            lossTime = getTime()           -- NEW: Record loss time
         end
 
-        -- Зіткнення з хвостом
+        -- Collision with tail
         for _, segment in ipairs(snake) do
             if newHead.x == segment.x and newHead.y == segment.y then
                 gameOver = true
@@ -157,7 +157,7 @@ local function run(event)
                 score = score + 1
                 spawnFood()
                 
-                -- Прискорення
+                -- Acceleration
                 if score % 10 == 0 then
                     playTone(2000, 300, 0, PLAY_NOW)
                     if currentSpeed > maxSpeed then
@@ -172,7 +172,7 @@ local function run(event)
         end
     end
 
-    -- МАЛЮВАННЯ
+    -- DRAWING
     lcd.drawFilledRectangle(food.x * cellSize, food.y * cellSize, cellSize - 1, cellSize - 1, RED)
     
     for i, segment in ipairs(snake) do
